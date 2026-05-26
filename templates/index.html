@@ -9,6 +9,7 @@
       integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
       crossorigin="anonymous"
     />
+    <link rel="stylesheet" href="/static/style.css" />
   </head>
   <body class="bg-light">
     <div class="container mt-5">
@@ -18,14 +19,22 @@
         <div class="mb-3">
           <span class="badge bg-primary"> Total: {{ total_task }} </span>
 
-          <span class="badge bg-warning text-dark"> Belum: {{ total_belum }} </span>
+          <span class="badge bg-warning text-dark">
+            Belum: {{ total_belum }}
+          </span>
 
           <span class="badge bg-success"> Selesai: {{ total_selesai }} </span>
         </div>
 
         <form method="GET" class="mb-4">
           <div class="input-group">
-            <input type="text" class="form-control" name="search" placeholder="Cari task..." value="{{ search }}" />
+            <input
+              type="text"
+              class="form-control"
+              name="search"
+              placeholder="Cari task..."
+              value="{{ search }}"
+            />
 
             <button class="btn btn-dark">Cari</button>
           </div>
@@ -33,7 +42,13 @@
 
         <form action="/add" method="POST" class="row g-2">
           <div class="col-md-3">
-            <input type="text" class="form-control" name="nama" placeholder="Nama Task" required />
+            <input
+              type="text"
+              class="form-control"
+              name="nama"
+              placeholder="Nama Task"
+              required
+            />
           </div>
 
           <div class="col-md-2">
@@ -60,7 +75,11 @@
             <button class="btn btn-primary w-100">Tambah</button>
           </div>
           <div class="col-md-12">
-            <textarea name="notes" class="form-control" placeholder="Deskripsi / catatan task"></textarea>
+            <textarea
+              name="notes"
+              class="form-control"
+              placeholder="Deskripsi / catatan task"
+            ></textarea>
           </div>
         </form>
 
@@ -111,11 +130,21 @@
             </td>
 
             <td>
-              <a href="/done/{{ task.id }}" class="btn btn-success btn-sm"> Selesai </a>
+              <a href="/done/{{ task.id }}" class="btn btn-success btn-sm">
+                Selesai
+              </a>
 
-              <a href="/edit/{{ task.id }}" class="btn btn-warning btn-sm"> Edit </a>
+              <a href="/edit/{{ task.id }}" class="btn btn-warning btn-sm">
+                Edit
+              </a>
 
-              <a href="/delete/{{ task.id }}" class="btn btn-danger btn-sm" onclick="return confirm('Yakin hapus task?');"> Hapus </a>
+              <a
+                href="/delete/{{ task.id }}"
+                class="btn btn-danger btn-sm"
+                onclick="return confirm('Yakin hapus task?');"
+              >
+                Hapus
+              </a>
             </td>
             <td>{{ task.notes }}</td>
             <td>
@@ -157,9 +186,17 @@
             <td>{{ task.priority }}</td>
 
             <td>
-              <a href="/undo/{{ task.id }}" class="btn btn-secondary btn-sm"> Undo </a>
+              <a href="/undo/{{ task.id }}" class="btn btn-secondary btn-sm">
+                Undo
+              </a>
 
-              <a href="/delete/{{ task.id }}" class="btn btn-danger btn-sm" onclick="return confirm('Yakin hapus task?');"> Hapus </a>
+              <a
+                href="/delete/{{ task.id }}"
+                class="btn btn-danger btn-sm"
+                onclick="return confirm('Yakin hapus task?');"
+              >
+                Hapus
+              </a>
             </td>
           </tr>
 

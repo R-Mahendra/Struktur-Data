@@ -18,43 +18,101 @@
 
         <form method="POST" class="row g-3">
           <div class="col-md-12">
-            <input type="text" class="form-control" name="nama" value="{{ task[0] }}" required />
+            <input
+              type="text"
+              class="form-control"
+              name="nama"
+              value="{{ task[0] }}"
+              gvhgvhh
+              required
+            />
           </div>
 
           <div class="col-md-4">
             <select name="kategori" class="form-select">
               {% for k in kategori %}
 
-              <option value="{{ k }}" {% if task[1]=="k" %} selected {% endif %}>{{ k }}</option>
+              <option
+                value="{{ k }}"
+                {%
+                if
+                task[1]=="k"
+                %}
+                selected
+                {%
+                endif
+                %}
+              >
+                {{ k }}
+              </option>
 
               {% endfor %}
             </select>
           </div>
 
           <div class="col-md-4">
-            <input type="date" class="form-control" name="tanggal" value="{{ task[2] }}" required />
+            <input
+              type="date"
+              class="form-control"
+              name="tanggal"
+              value="{{ task[2] }}"
+              required
+            />
           </div>
 
           <div class="col-md-4">
             <select name="priority" class="form-select">
-              <option value="Low" {% if task[4]=="Low" %} selected {% endif %}>Low</option>
+              <option
+                value="Low"
+                {%
+                if
+                task[4]=="Low"
+                %}
+                selected
+                {%
+                endif
+                %}
+              >
+                Low
+              </option>
 
-              <option value="Medium" {% if task[4]=="Medium" %} selected {% endif %}>Medium</option>
+              <option
+                value="Medium"
+                {%
+                if
+                task[4]=="Medium"
+                %}
+                selected
+                {%
+                endif
+                %}
+              >
+                Medium
+              </option>
 
-              <option value="High" {% if task[4]=="High" %} selected {% endif %}>High</option>
+              <option
+                value="High"
+                {%
+                if
+                task[4]=="High"
+                %}
+                selected
+                {%
+                endif
+                %}
+              >
+                High
+              </option>
             </select>
+          </div>
+          <div class="col-md-12">
+            <textarea name="notes" class="form-control">{{ task[6] }}</textarea>
           </div>
 
           <div class="col-md-12">
             <button class="btn btn-primary">Update</button>
 
             <a href="/" class="btn btn-secondary"> Kembali </a>
-          </div>
-          <div class="col-md-12">
-            <textarea name="notes" class="form-control">
-{{ task[6] }}
-    </textarea
-            >
           </div>
         </form>
       </div>
