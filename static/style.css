@@ -1,0 +1,51 @@
+body {
+  font-family: Arial;
+  background: #f4f4f4;
+}
+
+.container {
+  width: 900px;
+  margin: auto;
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+}
+
+input,
+select,
+button {
+  padding: 10px;
+  margin: 5px;
+}
+
+table {
+  width: 100%;
+  margin-top: 20px;
+  border-collapse: collapse;
+}
+
+table,
+th,
+td {
+  border: 1px solid gray;
+}
+
+th,
+td {
+  padding: 10px;
+  text-align: center;
+}
+
+a {
+  text-decoration: none;
+  margin: 5px;
+}
+.selesai {
+  color: green;
+  font-weight: bold;
+}
+
+.belum {
+  color: red;
+  font-weight: bold;
+}
