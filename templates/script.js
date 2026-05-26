@@ -22,3 +22,32 @@ formFields.forEach((field) => {
 document.getElementById("task-form").addEventListener("submit", () => {
   formFields.forEach((f) => localStorage.removeItem(`draft_${f}`));
 });
+
+
+function saveToLocalStorage() {
+  const tasks = [];
+
+  // Ambil semua row task
+  document.querySelectorAll("tbody tr").forEach((row) => {
+    const cols = row.querySelectorAll("td");
+
+    // Pastikan kolom cukup
+    if (cols.length >= 5) {
+      tasks.push({
+        nama: cols[0].innerText,
+        kategori: cols[1].innerText,
+        tanggal: cols[2].innerText,
+        priority: cols[3].innerText,
+        notes: cols[4].innerText,
+      });
+    }
+  });
+
+  // Simpan ke localStorage
+  localStorage.setItem("tasks", JSON.stringify(tasks));
+
+  console.log("Saved to localStorage");
+}
+
+// Jalankan otomatis saat halaman load
+saveToLocalStorage();

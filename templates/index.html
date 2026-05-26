@@ -1,220 +1,419 @@
 <!doctype html>
-<html>
+<html lang="id" data-theme="dark">
   <head>
-    <title>To-Do List</title>
+    <meta charset="UTF-8" />
+    <title>TaskFlow — To-Do Manager</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-      integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
-      crossorigin="anonymous"
-    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="/static/style.css" />
   </head>
-  <body class="bg-light">
-    <div class="container mt-5">
-      <div class="card p-4 shadow">
-        <h1 class="mb-4">To-Do List Management</h1>
 
-        <div class="mb-3">
-          <span class="badge bg-primary"> Total: {{ total_task }} </span>
-
-          <span class="badge bg-warning text-dark">
-            Belum: {{ total_belum }}
-          </span>
-
-          <span class="badge bg-success"> Selesai: {{ total_selesai }} </span>
+  <body>
+    <div class="app-wrapper">
+      <!-- ============================================================
+       HEADER
+  ============================================================ -->
+      <header class="app-header">
+        <div class="app-logo">Task<span>Flow</span></div>
+        <div class="header-actions">
+          <span style="font-size: 12px; color: var(--text2); font-family: var(--font-mono)" id="clock"></span>
         </div>
+      </header>
 
-        <form method="GET" class="mb-4">
-          <div class="input-group">
-            <input
-              type="text"
-              class="form-control"
-              name="search"
-              placeholder="Cari task..."
-              value="{{ search }}"
-            />
+      <!-- ============================================================
+       STATS
+  ============================================================ -->
+      <div class="stats-grid">
+        <div class="stat-card accent">
+          <div class="stat-num">{{ total_task }}</div>
+          <div class="stat-label">Total Tasks</div>
+        </div>
+        <div class="stat-card amber">
+          <div class="stat-num">{{ total_belum }}</div>
+          <div class="stat-label">In Progress</div>
+        </div>
+        <div class="stat-card green">
+          <div class="stat-num">{{ total_selesai }}</div>
+          <div class="stat-label">Completed</div>
+        </div>
+        <div class="stat-card red">
+          <div class="stat-num">{{ overdue_count }}</div>
+          <div class="stat-label">Overdue</div>
+        </div>
+      </div>
 
-            <button class="btn btn-dark">Cari</button>
+      <!-- Progress bar -->
+      <div class="progress-row">
+        <div class="progress-label">
+          <span>COMPLETION RATE</span>
+          <span style="color: var(--accent); font-weight: 600">{{ progress }}%</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" style="width:  {{ progress }}%"></div>
+        </div>
+      </div>
+
+      <!-- Category stats -->
+      <div class="cat-stats">
+        {% for k, s in stats.items() %}
+        <div class="cat-pill">
+          <div class="cat-pill-name">{{ k }}</div>
+          <div class="cat-pill-nums"><span>{{ s.selesai }}</span> / {{ s.total }}</div>
+          <div class="cat-pill-bar">
+            <div class="cat-pill-fill" style="width: {% if s.total > 0 %}{{ (s.selesai / s.total * 100)|int }}%{% else %}0%{% endif %}"></div>
           </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <!-- ============================================================
+       TOOLBAR
+  ============================================================ -->
+      <div class="toolbar">
+        <form method="GET" class="search-wrap" id="search-form">
+          <input type="text" name="search" id="search-input" placeholder="Search tasks..." value="{{ search }}" autocomplete="off" />
+          <input type="hidden" name="kategori" value="{{ filter_kat }}" />
+          <input type="hidden" name="sort" value="{{ sort_by }}" />
+          <input type="hidden" name="priority" value="{{ filter_prior }}" />
         </form>
 
-        <form action="/add" method="POST" class="row g-2">
-          <div class="col-md-3">
-            <input
-              type="text"
-              class="form-control"
-              name="nama"
-              placeholder="Nama Task"
-              required
-            />
-          </div>
+        <div class="filter-chips">
+          <a href="/?kategori=Semua&sort={{ sort_by }}&priority={{ filter_prior }}&search={{ search }}" class="chip {% if filter_kat == 'Semua' %}active{% endif %}">Semua</a>
+          {% for k in kategori %}
+          <a href="/?kategori={{ k }}&sort={{ sort_by }}&priority={{ filter_prior }}&search={{ search }}" class="chip {% if filter_kat == k %}active{% endif %}">{{ k }}</a>
+          {% endfor %}
+        </div>
 
-          <div class="col-md-2">
-            <select name="kategori" class="form-select">
+        <div class="filter-chips">
+          <a href="/?priority=Semua&kategori={{ filter_kat }}&sort={{ sort_by }}&search={{ search }}" class="chip {% if filter_prior == 'Semua' %}active{% endif %}">All Priority</a>
+          <a href="/?priority=High&kategori={{ filter_kat }}&sort={{ sort_by }}&search={{ search }}" class="chip red {% if filter_prior == 'High' %}active{% endif %}">High</a>
+          <a href="/?priority=Medium&kategori={{ filter_kat }}&sort={{ sort_by }}&search={{ search }}" class="chip amber {% if filter_prior == 'Medium' %}active{% endif %}">Medium</a>
+          <a href="/?priority=Low&kategori={{ filter_kat }}&sort={{ sort_by }}&search={{ search }}" class="chip green {% if filter_prior == 'Low' %}active{% endif %}">Low</a>
+        </div>
+
+        <div class="filter-chips">
+          <span style="font-size: 11px; color: var(--text2); font-family: var(--font-mono); padding: 6px 4px">Sort:</span>
+          <a href="/?sort=tanggal&kategori={{ filter_kat }}&priority={{ filter_prior }}&search={{ search }}" class="chip {% if sort_by == 'tanggal' %}active{% endif %}">Date</a>
+          <a href="/?sort=priority&kategori={{ filter_kat }}&priority={{ filter_prior }}&search={{ search }}" class="chip {% if sort_by == 'priority' %}active{% endif %}">Priority</a>
+          <a href="/?sort=nama&kategori={{ filter_kat }}&priority={{ filter_prior }}&search={{ search }}" class="chip {% if sort_by == 'nama' %}active{% endif %}">A–Z</a>
+        </div>
+      </div>
+
+      <!-- ============================================================
+       ADD TASK FORM
+  ============================================================ -->
+      <div class="panel">
+        <div class="panel-title">+ New Task</div>
+        <form action="/add" method="POST" id="task-form">
+          <div class="form-grid">
+            <input type="text" class="field-input" name="nama" id="draft-nama" placeholder="Task name..." required />
+            <select name="kategori" id="draft-kategori" class="field-select">
               {% for k in kategori %}
               <option value="{{ k }}">{{ k }}</option>
               {% endfor %}
             </select>
-          </div>
-
-          <div class="col-md-2">
-            <input type="date" class="form-control" name="tanggal" required />
-          </div>
-
-          <div class="col-md-2">
-            <select name="priority" class="form-select">
-              <option value="Low">Low</option>
-              <option value="Medium">Medium</option>
-              <option value="High">High</option>
+            <input type="date" class="field-input" name="tanggal" id="draft-tanggal" required />
+            <select name="priority" id="draft-priority" class="field-select">
+              <option value="Low">🟢 Low</option>
+              <option value="Medium">🟡 Medium</option>
+              <option value="High">🔴 High</option>
             </select>
-          </div>
-
-          <div class="col-md-2">
-            <button class="btn btn-primary w-100">Tambah</button>
-          </div>
-          <div class="col-md-12">
-            <textarea
-              name="notes"
-              class="form-control"
-              placeholder="Deskripsi / catatan task"
-            ></textarea>
+            <button type="submit" class="btn-add">Add Task</button>
+            <div class="form-notes">
+              <textarea class="field-textarea" name="notes" id="draft-notes" placeholder="Notes or description..."></textarea>
+              <span class="draft-badge" id="draft-badge">● draft saved</span>
+            </div>
           </div>
         </form>
-
-        <hr />
-
-        <h3>Belum Selesai</h3>
-
-        {% if belum|length == 0 %}
-        <div class="alert alert-secondary">Tidak ada task.</div>
-        {% endif %}
-
-        <table class="table table-bordered table-responsive">
-          <tr>
-            <th>Task</th>
-            <th>Kategori</th>
-            <th>Tanggal</th>
-            <th>Priority</th>
-            <th>Status</th>
-            <th>Aksi</th>
-            <th>Notes</th>
-          </tr>
-
-          {% for task in belum %}
-
-          <tr class="{% if task.overdue %}table-danger{% endif %}">
-            <td>{{ task.nama }}</td>
-            <td>{{ task.kategori }}</td>
-            <td>{{ task.tanggal }}</td>
-
-            <td>
-              {% if task.priority == 'High' %}
-              <span class="badge bg-danger"> High </span>
-
-              {% elif task.priority == 'Medium' %}
-              <span class="badge bg-warning text-dark"> Medium </span>
-
-              {% else %}
-              <span class="badge bg-success"> Low </span>
-              {% endif %}
-            </td>
-
-            <td>
-              {% if task.overdue %}
-              <span class="badge bg-danger"> Overdue </span>
-              {% else %}
-              <span class="badge bg-warning text-dark"> Belum </span>
-              {% endif %}
-            </td>
-
-            <td>
-              <a href="/done/{{ task.id }}" class="btn btn-success btn-sm">
-                Selesai
-              </a>
-
-              <a href="/edit/{{ task.id }}" class="btn btn-warning btn-sm">
-                Edit
-              </a>
-
-              <a
-                href="/delete/{{ task.id }}"
-                class="btn btn-danger btn-sm"
-                onclick="return confirm('Yakin hapus task?');"
-              >
-                Hapus
-              </a>
-            </td>
-            <td>{{ task.notes }}</td>
-            <td>
-              {% if task.overdue %}
-
-              <span class="badge bg-danger"> Overdue </span>
-
-              {% else %}
-
-              <span class="badge bg-success"> Aman </span>
-
-              {% endif %}
-            </td>
-          </tr>
-
-          {% endfor %}
-        </table>
-
-        <h3 class="mt-5">Selesai</h3>
-
-        {% if selesai|length == 0 %}
-        <div class="alert alert-secondary">Tidak ada task selesai.</div>
-        {% endif %}
-
-        <table class="table table-bordered table-responsive">
-          <tr>
-            <th>Task</th>
-            <th>Kategori</th>
-            <th>Tanggal</th>
-            <th>Priority</th>
-            <th>Aksi</th>
-          </tr>
-          {% for task in selesai %}
-
-          <tr>
-            <td>{{ task.nama }}</td>
-            <td>{{ task.kategori }}</td>
-            <td>{{ task.tanggal }}</td>
-            <td>{{ task.priority }}</td>
-
-            <td>
-              <a href="/undo/{{ task.id }}" class="btn btn-secondary btn-sm">
-                Undo
-              </a>
-
-              <a
-                href="/delete/{{ task.id }}"
-                class="btn btn-danger btn-sm"
-                onclick="return confirm('Yakin hapus task?');"
-              >
-                Hapus
-              </a>
-            </td>
-          </tr>
-
-          {% endfor %}
-        </table>
       </div>
-      <!-- <div class="mt-3 mb-4">
-        <label class="form-label"> Progress Completion: {{ progress }}% </label>
-  
-        <div class="progress">
-          <div class="progress-bar" role="progressbar" style="width: {{ progress }}%">{{ progress }}%</div>
+
+      <!-- ============================================================
+       BELUM SELESAI TABLE
+  ============================================================ -->
+      <div class="section-header">
+        <div class="section-title">In Progress</div>
+        <div class="section-count">{{ total_belum }}</div>
+      </div>
+
+      <div class="panel" style="padding: 0">
+        {% if belum|length == 0 %}
+        <div class="empty-state">
+          <div class="empty-icon">✓</div>
+          Tidak ada task aktif. Semua beres!
         </div>
-      </div> -->
+        {% else %}
+        <div class="table-wrap">
+          <table class="task-table">
+            <thead>
+              <tr>
+                <th>Task</th>
+                <th>Kategori</th>
+                <th>Tanggal</th>
+                <th>Priority</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for task in belum %}
+              <tr class="{% if task.overdue %}overdue-row{% endif %}">
+                <td>
+                  <div class="task-name">{{ task.nama }}</div>
+                  {% if task.notes %}
+                  <div class="task-notes-text">{{ task.notes }}</div>
+                  {% endif %}
+                </td>
+                <td><span class="badge badge-cat">{{ task.kategori }}</span></td>
+                <td>
+                  <div style="font-family: var(--font-mono); font-size: 13px">{{ task.tanggal }}</div>
+                  {% if task.overdue %}
+                  <div class="days-left urgent">{{ task.days_left * -1 }}d overdue</div>
+                  {% elif task.days_left == 0 %}
+                  <div class="days-left urgent">Due today!</div>
+                  {% elif task.days_left <= 3 %}
+                  <div class="days-left soon">{{ task.days_left }}d left</div>
+                  {% else %}
+                  <div class="days-left ok">{{ task.days_left }}d left</div>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if task.priority == 'High' %}
+                  <span class="badge badge-high">High</span>
+                  {% elif task.priority == 'Medium' %}
+                  <span class="badge badge-medium">Medium</span>
+                  {% else %}
+                  <span class="badge badge-low">Low</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if task.overdue %}
+                  <span class="badge badge-overdue">Overdue</span>
+                  {% else %}
+                  <span class="badge badge-belum">Belum</span>
+                  {% endif %}
+                </td>
+                <td>
+                  <div class="btn-actions">
+                    <a href="/done/{{ task.id }}" class="btn-action btn-done">✓ Done</a>
+                    <a href="/edit/{{ task.id }}" class="btn-action btn-edit">Edit</a>
+                    <a href="/delete/{{ task.id }}" class="btn-action btn-del" onclick="return confirmDelete(event);">Del</a>
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- ============================================================
+       SELESAI TABLE
+  ============================================================ -->
+      <div class="section-header" style="margin-top: 8px">
+        <div class="section-title" style="color: var(--green)">Completed</div>
+        <div class="section-count">{{ total_selesai }}</div>
+      </div>
+
+      <div class="panel" style="padding: 0">
+        {% if selesai|length == 0 %}
+        <div class="empty-state">Belum ada task yang selesai.</div>
+        {% else %}
+        <div class="table-wrap">
+          <table class="task-table">
+            <thead>
+              <tr>
+                <th>Task</th>
+                <th>Kategori</th>
+                <th>Tanggal</th>
+                <th>Priority</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for task in selesai %}
+              <tr>
+                <td>
+                  <div class="task-name" style="opacity: 0.6; text-decoration: line-through">{{ task.nama }}</div>
+                </td>
+                <td><span class="badge badge-cat" style="opacity: 0.6">{{ task.kategori }}</span></td>
+                <td style="font-family: var(--font-mono); font-size: 13px; opacity: 0.6">{{ task.tanggal }}</td>
+                <td>
+                  {% if task.priority == 'High' %}
+                  <span class="badge badge-high" style="opacity: 0.6">High</span>
+                  {% elif task.priority == 'Medium' %}
+                  <span class="badge badge-medium" style="opacity: 0.6">Medium</span>
+                  {% else %}
+                  <span class="badge badge-low" style="opacity: 0.6">Low</span>
+                  {% endif %}
+                </td>
+                <td><span class="badge badge-selesai">Selesai ✓</span></td>
+                <td>
+                  <div class="btn-actions">
+                    <a href="/undo/{{ task.id }}" class="btn-action btn-undo">↩ Undo</a>
+                    <a href="/delete/{{ task.id }}" class="btn-action btn-del" onclick="return confirmDelete(event);">Del</a>
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% endif %}
+      </div>
     </div>
-    <script
-      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
-      integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
-      crossorigin="anonymous"
-    ></script>
+    <!-- /app-wrapper -->
+
+    <!-- FAB Theme Toggle -->
+    <button class="fab-theme" id="theme-toggle" title="Toggle theme">🌙</button>
+
+    <!-- Toast container -->
+    <div id="toasts"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      // ============================================================
+      //  localStorage UTIL
+      // ============================================================
+      const LS = {
+        set(k, v) {
+          try {
+            localStorage.setItem(k, JSON.stringify(v));
+          } catch (e) {}
+        },
+        get(k, d = null) {
+          try {
+            const r = localStorage.getItem(k);
+            return r !== null ? JSON.parse(r) : d;
+          } catch (e) {
+            return d;
+          }
+        },
+        del(k) {
+          try {
+            localStorage.removeItem(k);
+          } catch (e) {}
+        },
+      };
+
+      // ============================================================
+      //  CLOCK
+      // ============================================================
+      function updateClock() {
+        const now = new Date();
+        const d = now.toLocaleDateString("id-ID", { weekday: "short", day: "numeric", month: "short" });
+        const t = now.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
+        const el = document.getElementById("clock");
+        if (el) el.textContent = d + " · " + t;
+      }
+      updateClock();
+      setInterval(updateClock, 1000);
+
+      // ============================================================
+      //  THEME
+      // ============================================================
+      const themeBtn = document.getElementById("theme-toggle");
+      function applyTheme(t) {
+        document.documentElement.setAttribute("data-theme", t);
+        themeBtn.textContent = t === "dark" ? "☀️" : "🌙";
+        LS.set("theme", t);
+      }
+      applyTheme(LS.get("theme", "dark"));
+      themeBtn.addEventListener("click", () => {
+        applyTheme(document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark");
+      });
+
+      // ============================================================
+      //  DRAFT FORM
+      // ============================================================
+      const FIELDS = ["nama", "kategori", "tanggal", "priority", "notes"];
+      const badge = document.getElementById("draft-badge");
+      let draftTimer;
+
+      function saveDraft() {
+        const d = {};
+        FIELDS.forEach((f) => {
+          const el = document.getElementById("draft-" + f);
+          if (el) d[f] = el.value;
+        });
+        LS.set("task_draft", d);
+        badge.classList.add("show");
+      }
+
+      function loadDraft() {
+        const d = LS.get("task_draft", {});
+        if (!Object.keys(d).length) return;
+        FIELDS.forEach((f) => {
+          const el = document.getElementById("draft-" + f);
+          if (el && d[f]) el.value = d[f]; // .value safe, no innerHTML
+        });
+        if (d.nama) {
+          badge.classList.add("show");
+          showToast("📝 Draft restored: " + d.nama, "info");
+        }
+      }
+
+      function clearDraft() {
+        LS.del("task_draft");
+        badge.classList.remove("show");
+      }
+
+      FIELDS.forEach((f) => {
+        const el = document.getElementById("draft-" + f);
+        if (!el) return;
+        el.addEventListener("input", () => {
+          clearTimeout(draftTimer);
+          draftTimer = setTimeout(saveDraft, 600);
+        });
+      });
+
+      document.getElementById("task-form").addEventListener("submit", clearDraft);
+      loadDraft();
+
+      // ============================================================
+      //  DELETE CONFIRM
+      // ============================================================
+      function confirmDelete(e) {
+        if (!confirm("Yakin mau hapus task ini?")) {
+          e.preventDefault();
+          return false;
+        }
+        return true;
+      }
+
+      // ============================================================
+      //  TOAST
+      // ============================================================
+      function showToast(msg, type = "success") {
+        const c = document.getElementById("toasts");
+        const t = document.createElement("div");
+        t.className = "toast-item";
+        t.textContent = msg; // textContent — XSS safe
+        const colors = { success: "var(--green)", info: "var(--accent)", warning: "var(--amber)", error: "var(--red)" };
+        t.style.borderLeftColor = colors[type] || "var(--accent)";
+        t.style.borderLeftWidth = "3px";
+        c.appendChild(t);
+        setTimeout(() => {
+          t.classList.add("fade-out");
+          setTimeout(() => t.remove(), 300);
+        }, 3000);
+      }
+
+      // ============================================================
+      //  AUTO-SUBMIT SEARCH (debounce)
+      // ============================================================
+      const searchInput = document.getElementById("search-input");
+      let searchTimer;
+      searchInput.addEventListener("input", () => {
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(() => {
+          LS.set("last_search", searchInput.value);
+          document.getElementById("search-form").submit();
+        }, 500);
+      });
+    </script>
   </body>
 </html>

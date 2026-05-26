@@ -1,121 +1,107 @@
 <!doctype html>
-<html>
+<html lang="id" data-theme="dark">
   <head>
-    <title>Edit Task</title>
+    <meta charset="UTF-8" />
+    <title>Edit Task — TaskFlow</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-      integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
-      crossorigin="anonymous"
-    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="/static/style.css" />
+
   </head>
 
-  <body class="bg-light">
-    <div class="container mt-5">
-      <div class="card p-4 shadow">
-        <h1>Edit Task</h1>
+  <body>
+    <div class="edit-wrapper">
+      <a href="/" class="back-link">← back to tasks</a>
 
-        <form method="POST" class="row g-3">
-          <div class="col-md-12">
-            <input
-              type="text"
-              class="form-control"
-              name="nama"
-              value="{{ task[0] }}"
-              gvhgvhh
-              required
-            />
+      <div class="edit-card">
+        <div class="edit-card-header">
+          <div class="edit-card-title">Edit Task</div>
+          <div class="edit-card-sub">ID #{{ id }} · Created {{ task_data.created_at }}</div>
+        </div>
+
+        <div class="edit-card-body">
+          <!-- Meta info -->
+          <div class="task-meta">
+            📌 Editing: <strong>{{ task_data.nama }}</strong> {% if task_data.overdue %} · <span style="color: var(--red)">⚠ Overdue</span>
+            {% endif %}
           </div>
 
-          <div class="col-md-4">
-            <select name="kategori" class="form-select">
-              {% for k in kategori %}
+          <form method="POST">
+            <!-- Nama -->
+            <div class="field-group">
+              <label class="field-label">Task Name</label>
+              <input type="text" class="field-input" name="nama" value="{{ task[0] }}" required placeholder="Enter task name..." />
+            </div>
 
-              <option
-                value="{{ k }}"
-                {%
-                if
-                task[1]=="k"
-                %}
-                selected
-                {%
-                endif
-                %}
-              >
-                {{ k }}
-              </option>
+            <!-- Kategori + Tanggal -->
+            <div class="form-row">
+              <div class="field-group" style="margin-bottom: 0">
+                <label class="field-label">Kategori</label>
+                <!-- BUG FIX: task[1] == k (bukan "k") -->
+                <select name="kategori" class="field-select">
+                  {% for k in kategori %}
+                  <option value="{{ k }}" {% if task[1]==k %}selected{% endif %}>{{ k }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="field-group" style="margin-bottom: 0">
+                <label class="field-label">Due Date</label>
+                <input type="date" class="field-input" name="tanggal" value="{{ task[2] }}" required />
+              </div>
+            </div>
 
-              {% endfor %}
-            </select>
-          </div>
+            <!-- Priority (visual radio) -->
+            <div class="field-group" style="margin-top: 20px">
+              <label class="field-label">Priority</label>
+              <div class="priority-options">
+                <div>
+                  <input type="radio" name="priority" id="prio-low" class="priority-opt" value="Low" {% if task[4]=="Low" %}checked{% endif %} />
+                  <label for="prio-low">
+                    <div class="prio-dot"></div>
+                    Low
+                  </label>
+                </div>
+                <div>
+                  <input type="radio" name="priority" id="prio-medium" class="priority-opt" value="Medium" {% if task[4]=="Medium" %}checked{% endif %} />
+                  <label for="prio-medium">
+                    <div class="prio-dot"></div>
+                    Medium
+                  </label>
+                </div>
+                <div>
+                  <input type="radio" name="priority" id="prio-high" class="priority-opt" value="High" {% if task[4]=="High" %}checked{% endif %} />
+                  <label for="prio-high">
+                    <div class="prio-dot"></div>
+                    High
+                  </label>
+                </div>
+              </div>
+            </div>
 
-          <div class="col-md-4">
-            <input
-              type="date"
-              class="form-control"
-              name="tanggal"
-              value="{{ task[2] }}"
-              required
-            />
-          </div>
+            <!-- Notes -->
+            <div class="field-group">
+              <label class="field-label">Notes</label>
+              <textarea class="field-textarea" name="notes" placeholder="Add notes...">{{ task[6] }}</textarea>
+            </div>
 
-          <div class="col-md-4">
-            <select name="priority" class="form-select">
-              <option
-                value="Low"
-                {%
-                if
-                task[4]=="Low"
-                %}
-                selected
-                {%
-                endif
-                %}
-              >
-                Low
-              </option>
-
-              <option
-                value="Medium"
-                {%
-                if
-                task[4]=="Medium"
-                %}
-                selected
-                {%
-                endif
-                %}
-              >
-                Medium
-              </option>
-
-              <option
-                value="High"
-                {%
-                if
-                task[4]=="High"
-                %}
-                selected
-                {%
-                endif
-                %}
-              >
-                High
-              </option>
-            </select>
-          </div>
-          <div class="col-md-12">
-            <textarea name="notes" class="form-control">{{ task[6] }}</textarea>
-          </div>
-
-          <div class="col-md-12">
-            <button class="btn btn-primary">Update</button>
-
-            <a href="/" class="btn btn-secondary"> Kembali </a>
-          </div>
-        </form>
+            <!-- Buttons -->
+            <div class="btn-row">
+              <a href="/" class="btn-cancel">Cancel</a>
+              <button type="submit" class="btn-primary-custom">Save Changes</button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
+
+    <script>
+      // Sync theme dari localStorage
+      try {
+        const t = JSON.parse(localStorage.getItem("theme")) || "dark";
+        document.documentElement.setAttribute("data-theme", t);
+      } catch (e) {}
+    </script>
   </body>
 </html>
